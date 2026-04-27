@@ -1,0 +1,8 @@
+{
+  "name": "sc-brand-hub",
+  "version": "1.0.0",
+  "description": "Spectro Cloud Brand Hub",
+  "dependencies": {
+    "googleapis": "^140.0.0"
+  }
+}
