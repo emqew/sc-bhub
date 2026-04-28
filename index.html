@@ -253,6 +253,7 @@
       <button class="nav-btn active" id="nav-home" onclick="showPage('home')">Home</button>
       <button class="nav-btn" id="nav-browse" onclick="showPage('browse')">Browse</button>
       <button class="nav-btn" id="nav-guidelines" onclick="showPage('guidelines')">Brand Guidelines</button>
+      <button class="nav-btn" id="nav-upload" onclick="showPage('upload')">Upload</button>
       
     </nav>
   </header>
@@ -505,6 +506,146 @@
 
       
 
+    
+      <!-- UPLOAD -->
+      <div id="page-upload" style="display:none">
+        <!-- Password gate for upload -->
+        <div id="uploadGate" style="max-width:480px;margin:80px auto;background:white;border:1px solid var(--paper-mid);border-radius:16px;padding:48px;text-align:center;box-shadow:0 12px 32px rgba(1,33,33,0.06)">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal);margin-bottom:10px">Restricted area</div>
+          <div style="font-size:24px;font-weight:200;color:var(--ink);margin-bottom:8px;line-height:1.3">Marketing-only upload</div>
+          <div style="font-size:13px;color:var(--ink-light);margin-bottom:28px;line-height:1.6">Enter the upload password to add assets to the Brand Hub.</div>
+          <input type="password" id="uploadPasswordInput" placeholder="Password" autocomplete="off"
+                 style="width:100%;padding:13px 16px;background:var(--paper);border:1px solid var(--paper-mid);border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;text-align:center;letter-spacing:0.06em;margin-bottom:12px"
+                 onkeydown="if(event.key==='Enter') checkUploadPassword()">
+          <button onclick="checkUploadPassword()" style="width:100%;padding:13px;background:var(--teal);color:white;border:none;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.06em;cursor:pointer">Unlock upload</button>
+          <div id="uploadGateError" style="font-size:12px;color:var(--orange);margin-top:10px;min-height:18px;font-weight:500"></div>
+        </div>
+
+        <!-- Upload form (hidden until unlocked) -->
+        <div id="uploadForm" style="display:none">
+          <div style="background:var(--ink);border-radius:16px;padding:40px 48px;margin-bottom:28px;position:relative;overflow:hidden">
+            <div style="position:absolute;right:-40px;top:-40px;width:280px;height:280px;background:var(--teal);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);opacity:0.08;transform:rotate(38.5deg)"></div>
+            <div style="position:relative;z-index:1">
+              <div style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal);margin-bottom:12px">Add to Brand Hub</div>
+              <div style="font-size:30px;font-weight:200;color:var(--paper);margin-bottom:8px">Upload an asset</div>
+              <div style="font-size:13px;color:rgba(247,241,237,0.55);max-width:540px;line-height:1.6;font-weight:300">Fill in the metadata below — the file will be renamed and placed in the right Drive folder automatically.</div>
+            </div>
+          </div>
+
+          <div style="background:white;border:1px solid var(--paper-mid);border-radius:14px;padding:32px;max-width:720px">
+            
+            <!-- File picker -->
+            <div style="margin-bottom:24px">
+              <label style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--ink-light);margin-bottom:8px;display:block;text-transform:uppercase">File</label>
+              <div id="fileDropZone" style="border:2px dashed var(--paper-dark);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s" onclick="document.getElementById('fileInput').click()">
+                <div id="fileDropContent">
+                  <div style="font-size:32px;margin-bottom:8px;opacity:0.4">⬆</div>
+                  <div style="font-size:13px;color:var(--ink);font-weight:500;margin-bottom:4px">Click to select a file</div>
+                  <div style="font-size:11px;color:var(--ink-light)">PDF, PNG, SVG, ZIP, PPTX, MP4 — max 4MB</div>
+                </div>
+              </div>
+              <input type="file" id="fileInput" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.svg,.zip,.pptx,.docx,.xlsx,.mp4,.mov" onchange="handleFileSelect(event)">
+            </div>
+
+            <!-- Clean name -->
+            <div style="margin-bottom:20px">
+              <label style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--ink-light);margin-bottom:8px;display:block;text-transform:uppercase">Asset name</label>
+              <input type="text" id="cleanNameInput" placeholder="e.g. yum-brands-retail-edge-thumb"
+                     style="width:100%;padding:11px 14px;background:var(--paper);border:1px solid var(--paper-mid);border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none">
+              <div style="font-size:11px;color:var(--ink-light);margin-top:6px">Lowercase, hyphens between words. 2-4 keywords.</div>
+            </div>
+
+            <!-- Category & Subcategory -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+              <div>
+                <label style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--ink-light);margin-bottom:8px;display:block;text-transform:uppercase">Category</label>
+                <select id="categoryInput" onchange="updateSubcategoryOptions()"
+                        style="width:100%;padding:11px 12px;background:var(--paper);border:1px solid var(--paper-mid);border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;cursor:pointer">
+                  <option value="">Select...</option>
+                  <option value="Brand">Brand</option>
+                  <option value="Content">Content</option>
+                  <option value="Product">Product</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--ink-light);margin-bottom:8px;display:block;text-transform:uppercase">Subcategory</label>
+                <select id="subcategoryInput"
+                        style="width:100%;padding:11px 12px;background:var(--paper);border:1px solid var(--paper-mid);border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;cursor:pointer">
+                  <option value="">Pick a category first</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Tag slots -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+              <div>
+                <label style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--ink-light);margin-bottom:8px;display:block;text-transform:uppercase">Segment</label>
+                <select id="segmentInput" style="width:100%;padding:11px 12px;background:var(--paper);border:1px solid var(--paper-mid);border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;cursor:pointer">
+                  <option value="">Select...</option>
+                  <option value="comm">Commercial</option>
+                  <option value="pubsec">Public Sector</option>
+                  <option value="partn">Partner</option>
+                  <option value="allseg">All segments (generic)</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--ink-light);margin-bottom:8px;display:block;text-transform:uppercase">Industry</label>
+                <select id="industryInput" style="width:100%;padding:11px 12px;background:var(--paper);border:1px solid var(--paper-mid);border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;cursor:pointer">
+                  <option value="">Select...</option>
+                  <option value="agritech">Agritech</option>
+                  <option value="defense">Defense</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="hospitality">Hospitality</option>
+                  <option value="logistics">Logistics</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="publicsector">Public Sector</option>
+                  <option value="retail">Retail</option>
+                  <option value="techsoftware">Technology & Software</option>
+                  <option value="telecom">Telecommunications</option>
+                  <option value="allind">All industries (generic)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px">
+              <div>
+                <label style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--ink-light);margin-bottom:8px;display:block;text-transform:uppercase">Use case</label>
+                <select id="usecaseInput" style="width:100%;padding:11px 12px;background:var(--paper);border:1px solid var(--paper-mid);border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;cursor:pointer">
+                  <option value="">Select...</option>
+                  <option value="vmsonk8s">VMs on K8s</option>
+                  <option value="edgek8s">Edge K8s</option>
+                  <option value="k8saas">K8s-as-a-Service</option>
+                  <option value="baremetalk8s">Bare Metal K8s</option>
+                  <option value="allusec">All use cases (generic)</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--ink-light);margin-bottom:8px;display:block;text-transform:uppercase">Product</label>
+                <select id="productInput" style="width:100%;padding:11px 12px;background:var(--paper);border:1px solid var(--paper-mid);border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;cursor:pointer">
+                  <option value="">Select...</option>
+                  <option value="palette">Palette</option>
+                  <option value="paletteai">PaletteAI</option>
+                  <option value="palettevertex">Palette VerteX</option>
+                  <option value="paletteaivertex">PaletteAI VerteX</option>
+                  <option value="allprod">All products (generic)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Filename preview -->
+            <div style="background:var(--paper);border-radius:8px;padding:14px 16px;margin-bottom:24px;border:1px solid var(--paper-mid)">
+              <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-light);margin-bottom:6px">Filename preview</div>
+              <div id="filenamePreview" style="font-family:'Courier New',monospace;font-size:12px;color:var(--ink);word-break:break-all">Fill in the form to see the generated filename</div>
+            </div>
+
+            <!-- Submit -->
+            <button onclick="submitUpload()" id="uploadSubmitBtn" style="width:100%;padding:14px;background:var(--teal);color:white;border:none;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.06em;cursor:pointer;text-transform:uppercase">Upload to Brand Hub</button>
+            
+            <div id="uploadStatus" style="margin-top:16px;font-size:13px;text-align:center;min-height:20px"></div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -569,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function showPage(page) {
-  ['home','browse','guidelines'].forEach(p => {
+  ['home','browse','guidelines','upload'].forEach(p => {
     const pageEl = document.getElementById('page-'+p);
     const navEl = document.getElementById('nav-'+p);
     if (pageEl) pageEl.style.display = p===page ? 'block' : 'none';
@@ -609,6 +750,7 @@ function toggleCategory(cat, el) {
 }
 
 function filterByCategory(cat, el) {
+  if (document.getElementById('page-home').style.display !== 'none') showPage('browse');
   document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
   activeFilters.category = cat;
@@ -618,6 +760,7 @@ function filterByCategory(cat, el) {
 }
 
 function filterBySubcategory(sub, el) {
+  if (document.getElementById('page-home').style.display !== 'none') showPage('browse');
   document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
   activeFilters.subcategory = sub;
@@ -743,12 +886,12 @@ function renderCard(a, i) {
 
   return '<div class="asset-card" style="animation-delay:'+i*0.04+'s">'+
     '<div class="card-thumb" style="background:'+a.thumbColor+'18">'+
-    (a.thumbnail ? '<img src="'+a.thumbnail+'" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' : '')+
+    (a.thumbnail ? '<img src="'+a.thumbnail+'" alt="" style="max-width:90%;max-height:90%;object-fit:contain" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' : '')+
     '<div class="card-thumb-placeholder" style="'+(a.thumbnail?'display:none;':'')+'position:absolute;inset:0;flex-direction:column;justify-content:center;align-items:center;background:'+a.thumbColor+'18">'+
     (catIcon?'<img class="thumb-icon" src="'+catIcon+'" style="filter:none;opacity:0.5" alt="">':'<span style="font-size:32px;opacity:0.4">'+icon+'</span>')+
     '<span class="thumb-label" style="color:'+a.thumbColor+'99">'+a.fileType+'</span>'+
     '</div>'+
-    '<span class="status-badge status-'+a.status+'">'+statusLabel+'</span>'+
+    ''+
     (visLabel?'<span class="visibility-badge">'+visLabel+'</span>':'')+
     '</div>'+
     '<div class="card-body">'+
@@ -818,6 +961,166 @@ function copyOutput() { navigator.clipboard.writeText(document.getElementById('o
 
 loadAssets();
 showPage('home');
+
+
+// === UPLOAD FUNCTIONALITY ===
+let uploadAuthorized = false;
+let selectedFile = null;
+
+function checkUploadPassword() {
+  const val = document.getElementById('uploadPasswordInput').value;
+  // We just check on the server side - any non-empty value lets us try
+  if (!val) {
+    document.getElementById('uploadGateError').textContent = 'Enter the password';
+    return;
+  }
+  // Store password to send with upload
+  window._uploadPw = val;
+  uploadAuthorized = true;
+  document.getElementById('uploadGate').style.display = 'none';
+  document.getElementById('uploadForm').style.display = 'block';
+}
+
+const SUBCATEGORY_MAP = {
+  'Brand': ['Logos', 'Icons & Illustrations', 'Guidelines & templates'],
+  'Content': ['Social graphics', 'Whitepapers & reports'],
+  'Product': ['Diagrams', 'Screenshots & UI']
+};
+
+function updateSubcategoryOptions() {
+  const cat = document.getElementById('categoryInput').value;
+  const subSelect = document.getElementById('subcategoryInput');
+  subSelect.innerHTML = '<option value="">Select...</option>';
+  if (cat && SUBCATEGORY_MAP[cat]) {
+    SUBCATEGORY_MAP[cat].forEach(sub => {
+      const opt = document.createElement('option');
+      opt.value = sub;
+      opt.textContent = sub;
+      subSelect.appendChild(opt);
+    });
+  }
+  updateFilenamePreview();
+}
+
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // Check size
+  if (file.size > 4 * 1024 * 1024) {
+    showToast('File too large — max 4MB');
+    return;
+  }
+  
+  selectedFile = file;
+  document.getElementById('fileDropContent').innerHTML = 
+    '<div style="font-size:32px;margin-bottom:8px">📎</div>' +
+    '<div style="font-size:13px;color:var(--ink);font-weight:600;margin-bottom:4px">' + file.name + '</div>' +
+    '<div style="font-size:11px;color:var(--ink-light)">' + (file.size/1024).toFixed(1) + ' KB · Click to change</div>';
+  document.getElementById('fileDropZone').style.borderColor = 'var(--teal)';
+  updateFilenamePreview();
+}
+
+function updateFilenamePreview() {
+  const cleanName = document.getElementById('cleanNameInput').value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  const segment = document.getElementById('segmentInput').value;
+  const industry = document.getElementById('industryInput').value;
+  const usecase = document.getElementById('usecaseInput').value;
+  const product = document.getElementById('productInput').value;
+  const ext = selectedFile ? selectedFile.name.split('.').pop().toLowerCase() : 'ext';
+  
+  const preview = document.getElementById('filenamePreview');
+  if (cleanName && segment && industry && usecase && product) {
+    preview.textContent = `${cleanName}_${segment}_${industry}_${usecase}_${product}.${ext}`;
+    preview.style.color = 'var(--teal)';
+  } else {
+    preview.textContent = 'Fill in the form to see the generated filename';
+    preview.style.color = 'var(--ink-light)';
+  }
+}
+
+// Wire up live preview
+document.addEventListener('DOMContentLoaded', () => {
+  ['cleanNameInput','segmentInput','industryInput','usecaseInput','productInput'].forEach(id => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateFilenamePreview);
+      if (el) el.addEventListener('change', updateFilenamePreview);
+    }, 100);
+  });
+});
+
+async function submitUpload() {
+  if (!selectedFile) {
+    showToast('Pick a file first');
+    return;
+  }
+  
+  const cleanName = document.getElementById('cleanNameInput').value.trim();
+  const category = document.getElementById('categoryInput').value;
+  const subcategory = document.getElementById('subcategoryInput').value;
+  const segment = document.getElementById('segmentInput').value;
+  const industry = document.getElementById('industryInput').value;
+  const usecase = document.getElementById('usecaseInput').value;
+  const product = document.getElementById('productInput').value;
+  
+  if (!cleanName || !category || !subcategory || !segment || !industry || !usecase || !product) {
+    showToast('Please fill in all fields');
+    return;
+  }
+  
+  const btn = document.getElementById('uploadSubmitBtn');
+  const status = document.getElementById('uploadStatus');
+  btn.disabled = true;
+  btn.textContent = 'Uploading...';
+  status.textContent = '';
+  
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+  formData.append('password', window._uploadPw || '');
+  formData.append('cleanName', cleanName);
+  formData.append('category', category);
+  formData.append('subcategory', subcategory);
+  formData.append('segment', segment);
+  formData.append('industry', industry);
+  formData.append('usecase', usecase);
+  formData.append('product', product);
+  
+  try {
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await response.json();
+    
+    if (response.ok && data.success) {
+      status.style.color = 'var(--green-dark)';
+      status.textContent = '✓ Uploaded as ' + data.filename;
+      // Reset form
+      selectedFile = null;
+      document.getElementById('fileInput').value = '';
+      document.getElementById('cleanNameInput').value = '';
+      document.getElementById('fileDropContent').innerHTML = 
+        '<div style="font-size:32px;margin-bottom:8px;opacity:0.4">⬆</div>' +
+        '<div style="font-size:13px;color:var(--ink);font-weight:500;margin-bottom:4px">Click to select a file</div>' +
+        '<div style="font-size:11px;color:var(--ink-light)">PDF, PNG, SVG, ZIP, PPTX, MP4 — max 4MB</div>';
+      document.getElementById('fileDropZone').style.borderColor = 'var(--paper-dark)';
+      updateFilenamePreview();
+      // Reload assets after a moment
+      setTimeout(() => loadAssets(), 1000);
+    } else {
+      status.style.color = 'var(--orange)';
+      status.textContent = '✗ ' + (data.error || 'Upload failed');
+    }
+  } catch (err) {
+    status.style.color = 'var(--orange)';
+    status.textContent = '✗ ' + err.message;
+  }
+  
+  btn.disabled = false;
+  btn.textContent = 'Upload to Brand Hub';
+}
+
 </script>
 </body>
 </html>
